@@ -39,25 +39,25 @@ public class TicketController {
 
     @GetMapping
     public List<TicketDto> getAllTickets(@RequestParam(required = false) Status status,
-                                         @RequestParam(required = false) ServiceType serviceType) {
-        return ticketService.getTicketList(status, serviceType);
+                                         @RequestParam(required = false) ServiceType service) {
+        return ticketService.getTicketList(status, service);
     }
 
     @PatchMapping("/next")
     @ResponseStatus(HttpStatus.OK)
-    public TicketDto callNextTicket(@RequestParam(required = false) ServiceType serviceType) {
-        return ticketService.callNext(serviceType);
+    public TicketDto callNextTicket(@RequestParam(required = false) ServiceType service) {
+        return ticketService.callNext(service);
     }
 
     @PatchMapping("/{id}/done")
     @ResponseStatus(HttpStatus.OK)
-    public void doneTicket(@PathVariable Long id) throws Exception {
+    public void doneTicket(@PathVariable Long id) {
         ticketService.doneTicket(id);
     }
 
     @PatchMapping("/{id}/cancel")
     @ResponseStatus(HttpStatus.OK)
-    public void cancelTicket(@PathVariable Long id) throws Exception {
+    public void cancelTicket(@PathVariable Long id) {
         ticketService.cancelTicket(id);
     }
 }

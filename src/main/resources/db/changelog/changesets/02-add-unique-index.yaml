@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-unique-serving-per-service-index
+      author: Hiraeth-qw
+      changes:
+        - sql:
+            sql: CREATE UNIQUE INDEX uq_ticket_one_serving_per_service ON ticket (service) WHERE status = 'SERVING'
+      rollback:
+        - sql:
+            sql: DROP INDEX uq_ticket_one_serving_per_service

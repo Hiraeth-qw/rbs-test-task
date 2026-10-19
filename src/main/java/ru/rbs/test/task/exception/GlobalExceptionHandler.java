@@ -2,6 +2,7 @@ package ru.rbs.test.task.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -34,10 +35,21 @@ public class GlobalExceptionHandler {
 
         return build(HttpStatus.BAD_REQUEST, "Ошибка валидации", details);
     }
-    // кривой json, ошибка конвертации типа входящих параметров
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ErrorResponse> handleBadRequest(Exception e) {
-        return build(HttpStatus.BAD_REQUEST, e.getMessage(), List.of());
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonConflict() {
+        return build(HttpStatus.BAD_REQUEST, "Некорректный формат JSON", List.of());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleServiceTypeConflict() {
+        return build(HttpStatus.BAD_REQUEST, "Некорректное значение service (CONSULTATION, DOCUMENTS, PAYMENTS", List.of());
+    }
+
+    // защита от гонки при возможном параллельном вызове следующего талона
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleIntegrity() {
+        return build(HttpStatus.CONFLICT, "Конфликт данных: операцию нужно повторить", List.of());
     }
 
     @ExceptionHandler(Exception.class)

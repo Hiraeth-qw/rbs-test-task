@@ -12,6 +12,6 @@ public interface TicketService {
     TicketDto getTicketById(Long id);
     List<TicketDto> getTicketList(Status status, ServiceType serviceType);
     TicketDto callNext(ServiceType serviceType);
-    void doneTicket(Long id) throws Exception;
-    void cancelTicket(Long id) throws Exception;
+    void doneTicket(Long id);
+    void cancelTicket(Long id);
 }
