@@ -2,6 +2,7 @@ package ru.rbs.test.task.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -10,10 +11,13 @@ import ru.rbs.test.task.dto.TakeTicketRequest;
 import ru.rbs.test.task.dto.TicketDto;
 import ru.rbs.test.task.enumeration.ServiceType;
 import ru.rbs.test.task.enumeration.Status;
+import ru.rbs.test.task.exception.TicketConflictException;
+import ru.rbs.test.task.exception.TicketNotFoundException;
 import ru.rbs.test.task.model.Ticket;
 import ru.rbs.test.task.repository.TicketRepository;
 import ru.rbs.test.task.service.TicketService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +42,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketDto getTicketById(Long id) {
-        Ticket ticket = findByIdOrThrow(id); //404, сделать обработчик ошибок и свои исключения
+        Ticket ticket = findByIdOrThrow(id);
         return toDto(ticket);
     }
 
@@ -64,28 +68,40 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketDto callNext(ServiceType serviceType) {
-        // разобраться с логикой вызова следующего талона
-        // если по всем услугам уже SERVING, то можно ли вызывать следующий WAITING?
-        // при next талон не завершается автоматически, значит по идее можно вызвать еще один талон по той же услуге?
-        // а нет, нельзя же два SERVING, значит при отсутствии свободной услуги просто исключение
-        return null;
+        Ticket ticket;
+        if (serviceType != null) {
+            if (ticketRepository.existsByServiceAndStatus(serviceType, Status.SERVING))
+                throw new TicketConflictException("Талон для услуги " + serviceType + " уже обслуживается.");
+            ticket = ticketRepository.findFirstByServiceAndStatusOrderByCreatedAtAscIdAsc(serviceType, Status.WAITING)
+                    .orElseThrow(() -> new TicketNotFoundException("Для услуги " + serviceType + " нет талонов в ожидании."));
+        } else {
+            ticket = ticketRepository.findNextAmongFreeServices(Status.WAITING, Status.SERVING, PageRequest.of(0, 1))
+                    .stream().findFirst()
+                    .orElseThrow(() -> new TicketNotFoundException("Нет ожидающих талонов."));
+        }
+        ticket.setStatus(Status.SERVING);
+        ticket.setCalledAt(LocalDateTime.now());
+
+        return toDto(ticket);
     }
 
     @Override
     @Transactional
-    public void doneTicket(Long id) throws Exception {
+    public void doneTicket(Long id) {
         Ticket ticket = findByIdOrThrow(id);
 
-        if (ticket.getStatus() != Status.SERVING) throw new Exception(); // 409
+        if (ticket.getStatus() != Status.SERVING)
+            throw new TicketConflictException("Невозможно завершить обслуживание талона со статусом: " + ticket.getStatus());
         ticket.setStatus(Status.DONE);
     }
 
     @Override
     @Transactional
-    public void cancelTicket(Long id) throws Exception {
+    public void cancelTicket(Long id) {
         Ticket ticket = findByIdOrThrow(id);
 
-        if (ticket.getStatus() != Status.WAITING) throw new Exception(); // 409
+        if (ticket.getStatus() != Status.WAITING)
+            throw new TicketConflictException("Невозможно отменить талон со статусом: " + ticket.getStatus());
         ticket.setStatus(Status.CANCELLED);
     }
 
@@ -94,10 +110,13 @@ public class TicketServiceImpl implements TicketService {
                 ticket.getNumber(),
                 ticket.getClientName(),
                 ticket.getService(),
-                ticket.getStatus());
+                ticket.getStatus(),
+                ticket.getCreatedAt(),
+                ticket.getCalledAt());
     }
 
     private Ticket findByIdOrThrow(Long id) {
-        return ticketRepository.findById(id).orElseThrow(); // 404, сделать обработчик ошибок и свои исключения
+        return ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Талон с id: " + id + " не найден."));
     }
 }

@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import ru.rbs.test.task.enumeration.ServiceType;
 
-public record TakeTicketRequest(@NotBlank @Size(max = 100) String clientName,
-                                @NotNull ServiceType service) {
+public record TakeTicketRequest(@NotBlank(message = "Имя не должно быть пустым") @Size(max = 100) String clientName,
+                                @NotNull(message = "Тип услуги не выбран") ServiceType service) {
 }

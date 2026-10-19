@@ -2,7 +2,7 @@ spring:
   application:
     name: task
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5433/bookingDb}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketDb}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:admin}
   liquibase:
