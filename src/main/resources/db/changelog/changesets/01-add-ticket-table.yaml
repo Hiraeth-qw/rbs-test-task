@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: initial-add-ticket-table
+      author: Hiraeth-qw
+      changes:
+        - createTable:
+            tableName: ticket
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: number
+                  type: INT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_ticket_number
+              - column:
+                  name: client_name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: service
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: called_at
+                  type: TIMESTAMP
+
+        - createIndex:
+            indexName: idx_ticket_status_service
+            tableName: ticket
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: service
