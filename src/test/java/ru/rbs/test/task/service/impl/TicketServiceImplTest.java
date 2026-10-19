@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 import ru.rbs.test.task.dto.TakeTicketRequest;
 import ru.rbs.test.task.dto.TicketDto;
 import ru.rbs.test.task.enumeration.ServiceType;
@@ -15,7 +14,6 @@ import ru.rbs.test.task.exception.TicketNotFoundException;
 import ru.rbs.test.task.model.Ticket;
 import ru.rbs.test.task.repository.TicketRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,8 +107,8 @@ class TicketServiceImplTest {
         Ticket ticket = ticket(2L, ServiceType.DOCUMENTS, Status.WAITING);
 
         when(ticketRepository.findNextAmongFreeServices(Status.WAITING,
-                Status.SERVING, PageRequest.of(0, 1)))
-                .thenReturn(List.of(ticket));
+                Status.SERVING))
+                .thenReturn(Optional.of(ticket));
 
         TicketDto result = ticketService.callNext(null);
 
@@ -122,8 +120,8 @@ class TicketServiceImplTest {
     @Test
     void callNext_withoutService_nothingAvailable_throwsNotFound() {
         when(ticketRepository.findNextAmongFreeServices(
-                Status.WAITING, Status.SERVING, PageRequest.of(0, 1)))
-                .thenReturn(List.of());
+                Status.WAITING, Status.SERVING))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ticketService.callNext(null))
                 .isInstanceOf(TicketNotFoundException.class);

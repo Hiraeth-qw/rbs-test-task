@@ -2,7 +2,6 @@ package ru.rbs.test.task.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -75,8 +74,7 @@ public class TicketServiceImpl implements TicketService {
             ticket = ticketRepository.findFirstByServiceAndStatusOrderByCreatedAtAscIdAsc(serviceType, Status.WAITING)
                     .orElseThrow(() -> new TicketNotFoundException("Для услуги " + serviceType + " нет талонов в ожидании."));
         } else {
-            ticket = ticketRepository.findNextAmongFreeServices(Status.WAITING, Status.SERVING, PageRequest.of(0, 1))
-                    .stream().findFirst()
+            ticket = ticketRepository.findNextAmongFreeServices(Status.WAITING, Status.SERVING)
                     .orElseThrow(() -> new TicketNotFoundException("Нет ожидающих талонов."));
         }
         ticket.setStatus(Status.SERVING);
