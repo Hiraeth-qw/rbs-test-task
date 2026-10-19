@@ -2,9 +2,9 @@ spring:
   application:
     name: task
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketDb}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/ticketDb}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:admin}
+    password: ${DB_PASSWORD:postgres}
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
   jpa:

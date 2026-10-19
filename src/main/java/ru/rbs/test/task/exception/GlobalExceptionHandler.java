@@ -42,8 +42,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleServiceTypeConflict() {
-        return build(HttpStatus.BAD_REQUEST, "Некорректное значение service (CONSULTATION, DOCUMENTS, PAYMENTS", List.of());
+    public ResponseEntity<ErrorResponse> handleServiceTypeConflict(MethodArgumentTypeMismatchException e) {
+        return build(HttpStatus.BAD_REQUEST, "Некорректное значение " + e.getName(), List.of());
     }
 
     // защита от гонки при возможном параллельном вызове следующего талона
